@@ -5,6 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 
+from sqlalchemy import false
+
 from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
@@ -292,22 +294,26 @@ def create_app(test_config=None):
         #generate a random number
         #check if they are still questions
         if len(questions) == 0:
-            question =[]
+            question = {}
+            return jsonify({
+                "success":True,
+                "previous_questions":previous_questions 
+            })
         else:
             rand = random.randrange(0, len(questions))
             question = Question.query.filter(Question.id == questions[rand]).one_or_none()
             question = question.format() 
          
 
-        return jsonify({
-            "success":True,
-            "question":question,
-            "previous_questions":previous_questions ,
-            # "category":quiz_category,
-            "list":questions,
-            # "random":rand
+            return jsonify({
+                "success":True,
+                "question":question,
+                "previous_questions":previous_questions ,
+                # "category":quiz_category,
+                "list":questions,
+                # "random":rand
 
-        })
+            })
 
     """
     @TODO:[DONE]
