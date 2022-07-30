@@ -187,7 +187,7 @@ def create_app(test_config=None):
             search = body.get("searchTerm", None)
 
             try:
-                if search:
+                if search !=None:
                     selection = Question.query.order_by(Question.id).filter(
                         Question.question.ilike("%{}%".format(search))
                     )
@@ -201,7 +201,7 @@ def create_app(test_config=None):
                             "currentCategory": "Entertainment"
                         }
                     )
-                else:
+                elif 'question' in body and 'answer' in body and 'difficulty' in body and 'category' in body:
                     question = Question(question=new_question, answer=new_answer,category=new_category, difficulty=new_difficulty)
                     question.insert()
 
@@ -217,7 +217,8 @@ def create_app(test_config=None):
                             "search":search
                         }
                     )
-
+                else:
+                    abort(422)
             except:
                 abort(422)
 
@@ -276,44 +277,47 @@ def create_app(test_config=None):
         question =[]
         questions =[]
 
-        #specific category selected
-        if quiz_category['id'] != 0:
-            questions = Question.query.filter(Question.category == quiz_category['id']).order_by(Question.id).all()
-            questions = [question.format_ids() for question in questions]
+        if previous_questions != None and quiz_category != None:
+            #specific category selected
+            if quiz_category['id'] != 0:
+                questions = Question.query.filter(Question.category == quiz_category['id']).order_by(Question.id).all()
+                questions = [question.format_ids() for question in questions]
 
-        #all categories
+            #all categories
+            else:
+                questions = Question.query.order_by(Question.id).all()
+                questions = [question.format_ids() for question in questions]
+
+            #remove previous questions
+            for id in previous_questions:
+                if id in questions:
+                    questions.remove(id)
+
+            #generate a random number
+            #check if they are still questions
+            if len(questions) == 0:
+                question = {}
+                return jsonify({
+                    "success":True,
+                    "previous_questions":previous_questions 
+                })
+            else:
+                rand = random.randrange(0, len(questions))
+                question = Question.query.filter(Question.id == questions[rand]).one_or_none()
+                question = question.format() 
+            
+
+                return jsonify({
+                    "success":True,
+                    "question":question,
+                    "previous_questions":previous_questions ,
+                    # "category":quiz_category,
+                    "list":questions,
+                    # "random":rand
+
+                })
         else:
-            questions = Question.query.order_by(Question.id).all()
-            questions = [question.format_ids() for question in questions]
-
-        #remove previous questions
-        for id in previous_questions:
-            if id in questions:
-                questions.remove(id)
-
-        #generate a random number
-        #check if they are still questions
-        if len(questions) == 0:
-            question = {}
-            return jsonify({
-                "success":True,
-                "previous_questions":previous_questions 
-            })
-        else:
-            rand = random.randrange(0, len(questions))
-            question = Question.query.filter(Question.id == questions[rand]).one_or_none()
-            question = question.format() 
-         
-
-            return jsonify({
-                "success":True,
-                "question":question,
-                "previous_questions":previous_questions ,
-                # "category":quiz_category,
-                "list":questions,
-                # "random":rand
-
-            })
+            abort(422)
 
     """
     @TODO:[DONE]
