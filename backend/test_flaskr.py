@@ -130,7 +130,6 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_422_quizzes_fails(self):
         res = self.client().post("/quizzes")
-        data = json.loads(res.data)
         self.assertEqual(res.status_code, 400)
 
 
@@ -154,7 +153,6 @@ class TriviaTestCase(unittest.TestCase):
     
     def test_failed_search_question(self):
         res = self.client().post("/questions")
-        data = json.loads(res.data)
         self.assertEqual(res.status_code,400)
          
         
